@@ -39,10 +39,11 @@ import re
 import sys
 import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 HERE = Path(__file__).parent
 COMPANIES = HERE / "companies.txt"
@@ -71,7 +72,10 @@ NON_US = re.compile(
     r"netherlands|amsterdam|france|paris|spain|portugal|lisbon)\b", re.I)
 
 # --- eligibility gates, read from the JD body ---------------------------------------
-YEARS = re.compile(r"(\d{1,2})\s*(?:\+|to|-|–)?\s*(?:\d{1,2})?\s*\+?\s*years?\b", re.I)
+# \u2013 is an en dash, written as an escape rather than the literal character: postings
+# spell ranges "1-3 years" with a real en dash, so the pattern has to accept it.
+YEARS = re.compile(
+    r"(\d{1,2})\s*(?:\+|to|-|\u2013)?\s*(?:\d{1,2})?\s*\+?\s*years?\b", re.I)
 INELIGIBLE = re.compile(
     r"(itar\b|international traffic in arms|\bu\.?s\.? person\b|export control|"
     r"security clearance|\btop[\s-]?secret\b|\bts/sci\b|active secret|"
@@ -82,9 +86,10 @@ INELIGIBLE = re.compile(
 VISA_CATEGORIES = ("OPT", "CPT", "H-1B", "TN")
 _CAT = "|".join(re.escape(c) for c in VISA_CATEGORIES)
 EXCLUDES_VISA = re.compile(
-    rf"(not\s+(?:currently\s+)?(?:be\s+)?able to (?:engage|hire|consider)[^.]{{0,40}}\b({_CAT})\b|"
-    rf"cannot[^.]{{0,30}}\b({_CAT})\b|\bno\b[^.]{{0,20}}\b({_CAT})\b)", re.I) \
-    if VISA_CATEGORIES else re.compile(r"(?!)")
+    rf"(not\s+(?:currently\s+)?(?:be\s+)?able to (?:engage|hire|consider)"
+    rf"[^.]{{0,40}}\b({_CAT})\b|"
+    rf"cannot[^.]{{0,30}}\b({_CAT})\b|\bno\b[^.]{{0,20}}\b({_CAT})\b)", re.I
+) if VISA_CATEGORIES else re.compile(r"(?!)")
 
 # Employers and facilities where the work is cleared regardless of what the title says.
 # Extend for your own no-go list.
@@ -173,17 +178,17 @@ def body_of(row: dict[str, Any]) -> str:
     """The posting's text. One fetch per survivor, not per posting scanned."""
     try:
         if row["source"] == "greenhouse":
-            return get("https://boards-api.greenhouse.io/v1/boards/"
-                       f"{row['slug']}/jobs/{row['jid']}").get("content", "")
+            return str(get("https://boards-api.greenhouse.io/v1/boards/"
+                           f"{row['slug']}/jobs/{row['jid']}").get("content", ""))
         if row["source"] == "lever":
             for j in get(f"https://api.lever.co/v0/postings/{row['slug']}?mode=json"):
                 if str(j.get("id")) == row["jid"]:
-                    return j.get("descriptionPlain", "") + " " + str(j.get("lists", ""))
+                    return str(j.get("descriptionPlain", "")) + " " + str(j.get("lists", ""))
         if row["source"] == "ashby":
             d = get(f"https://api.ashbyhq.com/posting-api/job-board/{row['slug']}")
             for j in d.get("jobs", []):
                 if str(j.get("id")) == row["jid"]:
-                    return j.get("descriptionPlain", "")
+                    return str(j.get("descriptionPlain", ""))
     except (OSError, json.JSONDecodeError, KeyError, ValueError):
         return ""
     return ""
@@ -355,8 +360,8 @@ def main() -> int:
         with ThreadPoolExecutor(max_workers=8) as pool:
             bodies = list(pool.map(body_of, kept))
         survivors = []
-        for r, body in zip(kept, bodies):
-            text = re.sub(r"<[^>]+>", " ", body)
+        for i, r in enumerate(kept):          # bodies is pool.map over kept, so 1:1
+            text = re.sub(r"<[^>]+>", " ", bodies[i])
             if INELIGIBLE.search(text):
                 drop("clearance or ITAR in body")
             elif EXCLUDES_VISA.search(text):

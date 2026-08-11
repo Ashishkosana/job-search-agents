@@ -15,7 +15,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pipeline"))
 
-from fresh import (  # noqa: E402
+from fresh import (
     EXCLUDES_VISA,
     INELIGIBLE,
     NEWGRAD,

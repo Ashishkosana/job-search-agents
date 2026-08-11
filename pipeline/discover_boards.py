@@ -47,7 +47,8 @@ PATTERNS = (
                               r"([a-z0-9_-]+)", re.I)),
     ("lever", re.compile(r"jobs\.(?:eu\.)?lever\.co/([a-z0-9_-]+)", re.I)),
     ("ashby", re.compile(r"jobs\.ashbyhq\.com/([a-z0-9_.-]+)", re.I)),
-    ("smartrecruiters", re.compile(r"(?:jobs|careers)\.smartrecruiters\.com/([a-z0-9_-]+)", re.I)),
+    ("smartrecruiters",
+     re.compile(r"(?:jobs|careers)\.smartrecruiters\.com/([a-z0-9_-]+)", re.I)),
 )
 PROBES = {
     "greenhouse": lambda s: F.get(
@@ -87,7 +88,7 @@ def harvest() -> dict[tuple[str, str], str]:
 
 
 def verify(item: tuple[tuple[str, str], str]) -> tuple[tuple[str, str], str] | None:
-    (ats, slug), name = item
+    (ats, slug), _name = item
     try:
         postings = PROBES[ats](slug)
     except (OSError, json.JSONDecodeError, KeyError, ValueError):

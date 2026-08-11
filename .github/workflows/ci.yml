@@ -1,14 +1,27 @@
-name: ci
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - run: pip install ruff mypy pytest
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
       - run: ruff check .
-      - run: mypy --strict pipeline/fresh.py pipeline/discover_boards.py
+      - run: mypy
+      # The network-facing fetchers are not exercised in CI: they hit live employer
+      # ATS endpoints, so a green build must not depend on someone else's uptime.
+      # The filters that decide what reaches you are pure functions, and those are tested.
       - run: pytest -q
