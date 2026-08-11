@@ -2,8 +2,9 @@
 """discover_boards.py — grow companies.txt from public new-grad listing feeds.
 
 The freshness gate in `fresh.py` only sees companies whose board it polls, so the binding
-constraint on "what is new today" is the length of companies.txt, not the filter. The community listings.json feeds already carry direct apply URLs for
-hundreds of employers, and an apply URL contains the ATS slug:
+constraint on "what is new today" is the length of companies.txt, not the filter. Public
+new-grad listing feeds already carry direct apply URLs for hundreds of employers, and an
+apply URL contains the ATS slug:
 
     job-boards.greenhouse.io/<slug>/jobs/<id>
     jobs.lever.co/<slug>/<uuid>
@@ -12,8 +13,8 @@ hundreds of employers, and an apply URL contains the ATS slug:
 
 So: harvest every slug, drop the ones already listed, verify each board answers its
 ATS API with at least one posting, and append the survivors. Verification matters
-because a slug lifted from a stale listing is often a board that no longer exists,
-and an unverified line just makes radar.py noisier.
+because a slug lifted from a stale listing is often a board that no longer exists, and an
+unverified line just adds a failing fetch to every future run.
 
     python3 discover_boards.py            # dry run, prints what it would add
     python3 discover_boards.py --write    # append verified boards to companies.txt
@@ -107,7 +108,7 @@ def main() -> int:
             if (p := line.split()) and not line.startswith("#") and len(p) >= 2}
     print(f"companies.txt has {len(have)} boards")
 
-    print("harvesting community feeds:")
+    print("harvesting listing feeds:")
     candidates = {k: v for k, v in harvest().items() if k not in have}
     print(f"{len(candidates)} new candidate boards; verifying against the ATS APIs...")
 
@@ -125,7 +126,7 @@ def main() -> int:
         return 0
 
     with COMPANIES.open("a", encoding="utf-8") as f:
-        f.write("\n# --- discovered from community feeds, verified live ---\n")
+        f.write("\n# --- discovered from listing feeds, verified live ---\n")
         f.write("\n".join(lines) + "\n")
     print(f"appended {len(lines)} boards to {COMPANIES}")
     return 0
