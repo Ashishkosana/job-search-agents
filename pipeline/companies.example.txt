@@ -1,0 +1,12 @@
+# Boards to poll.  One per line:  <ats>  <slug>  <Display Name>
+# ats  = greenhouse | lever | ashby
+# slug = the token in the careers URL, e.g. job-boards.greenhouse.io/<slug>/jobs/<id>
+#
+# Copy to companies.txt and add your own. discover_boards.py can generate
+# hundreds of verified entries from public new-grad listing feeds.
+
+greenhouse      anthropic                   Anthropic
+greenhouse      gusto                       Gusto
+ashby           baseten                     Baseten
+ashby           nooks                       Nooks
+lever           velo3d                      Velo3D

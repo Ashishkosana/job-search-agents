@@ -1,0 +1,59 @@
+# Copy to profile.yml (gitignored) and fill in. The agents read this instead of having
+# your details baked into them, which is what lets the agent definitions be public.
+
+candidate:
+  name: Your Name
+  level: new-grad                 # new-grad | early-career | mid
+  degree: BS Computer Science, Month Year
+  location: City, ST
+  open_to_relocation: true
+
+work_authorization:
+  # Describe your actual situation in plain terms. The vetter reasons from these two
+  # facts, so keep them accurate.
+  authorized_now: true
+  needs_sponsorship_eventually: true
+  years_authorized_without_sponsorship: 3
+  # A short, honest line for human channels where sponsorship may be a concern.
+  pitch: >
+    Authorized to work now for about three years with no sponsorship needed, which
+    means several visa-lottery cycles before an employer would ever have to file.
+
+targeting:
+  lanes: [backend, full-stack, applied-ai, cloud-devops]
+  off_lane: [embedded, firmware, hardware, robotics, quant-research, pure-frontend]
+  # Requirements you cannot satisfy no matter how good the fit. These become hard skips.
+  hard_blockers:
+    - security clearance
+    - US-citizen-only
+    - ITAR / export control
+  salary_floor_usd: 85000
+  titles: [Software Engineer, Backend Engineer, Full-Stack Engineer, Software Engineer I]
+
+skills:
+  # Only what you can defend in an interview. The agents will not claim anything absent.
+  daily: [Python, SQL, Bash]
+  working: [TypeScript, React, Next.js]
+  coursework_only: [C, C++]
+  none: [Go, Rust, Java, "C#"]      # never claimed, always reported as an honest gap
+  cloud: [AWS Lambda, API Gateway, DynamoDB, CDK, IAM]
+
+resume_variants:
+  # Paths to your prepared variants. The vetter names one of these per job.
+  backend: private/resume/backend.pdf
+  fullstack: private/resume/fullstack.pdf
+  applied-ai: private/resume/applied-ai.pdf
+
+projects:
+  # The vetter and outreach agents pick from these. `defensible` matters: anything
+  # false means you cannot yet explain it end to end, so agents must not lead with it.
+  - name: example-service
+    one_line: What it does, in one sentence a stranger understands
+    stack: [Python, PostgreSQL]
+    url: https://github.com/you/example-service
+    defensible: true
+  - name: example-tool
+    one_line: The second thing
+    stack: [Python]
+    url: https://github.com/you/example-tool
+    defensible: false             # still needs a walkthrough before you cite it
